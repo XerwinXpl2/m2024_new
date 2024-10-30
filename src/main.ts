@@ -18,18 +18,23 @@ let camera: point = { x: 0, y: 0 };
 let TILESIZE: number = 32;
 
 function renderLoop(ft: number) {
-    camera.x = Math.sin(ft / 1000) * 10;
+    // WARNING: render breaks when camera coords have non int values
+    // TODO: this almost works, however
+    // 1) when value are negative, floor is glitching, ceil does not.
+    // 2) for some reason shapes that touch right edge are cut out.
+    camera.y = Math.floor(ft/4);
+    camera.x = camera.y;
     let t = performance.now();
     cv.width = window.innerWidth;
     cv.height = window.innerHeight;
 
-    for (let y = 0; y < cv.height / TILESIZE; y++) {
-        let sp = getTileInfo(0, y);
+    for (let y = -1; y-1 < cv.height / TILESIZE; y++) {
+        let sp = getTileInfo(-1, Math.floor(y)+Math.floor(camera.y/TILESIZE));
         let ll = 0;
         let ti;
-        let x = 0;
-        while (x < cv.width / TILESIZE) {
-            let ti = getTileInfo(x, y);
+        let x = -1;
+        while (x-1 < cv.width / TILESIZE) {
+            let ti = getTileInfo(x+Math.floor(camera.x/TILESIZE), Math.floor(y)+Math.floor(camera.y/TILESIZE));
             if (ti == sp) {
                 ll++;
                 x++;
@@ -44,15 +49,14 @@ function renderLoop(ft: number) {
                         ? "magenta"
                         : "yellow";
             ctx.fillRect(
-                (x - ll) * TILESIZE,
-                y * TILESIZE,
+                ((x - ll) * TILESIZE) - (camera.x%TILESIZE),
+                (y * TILESIZE) - (camera.y%TILESIZE),
                 TILESIZE * (ll + 1),
                 TILESIZE,
             );
             ll = 0;
             sp = ti;
             x++;
-            console.log(x);
         }
         ctx.fillStyle =
             ti == TileType.cyan
@@ -63,8 +67,8 @@ function renderLoop(ft: number) {
                     ? "magenta"
                     : "yellow";
         ctx.fillRect(
-            (x - ll) * TILESIZE,
-            y * TILESIZE,
+            ((x - ll) * TILESIZE) - (camera.x % TILESIZE),
+            y * TILESIZE - (camera.y % TILESIZE),
             TILESIZE * (ll + 1),
             TILESIZE,
         );

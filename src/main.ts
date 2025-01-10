@@ -3,80 +3,141 @@ import { TileType } from "./worldgen/types";
 
 const cv = document.getElementById("main_canvas") as HTMLCanvasElement;
 let ctxn = cv.getContext("2d");
-if (ctxn === null) {
-    console.error("failed to get canvas context");
-    throw new Error();
-}
-let ctx = ctxn as CanvasRenderingContext2D;
+if (!ctxn) throw new Error("Failed to get canvas context");
+const ctx = ctxn as CanvasRenderingContext2D;
 
-type point = {
+const camera: { x: number; y: number } = { x: 0, y: 0 };
+const TILESIZE = 32;
+
+const keys = { up: false, down: false, left: false, right: false };
+
+const players: {
     x: number;
     y: number;
-};
-let camera: point = { x: 0, y: 0 };
+    width: number;
+    height: number;
+    speed: number;
+    fc: string;
+}[] = [
+    { x: 0, y: 0, width: TILESIZE, height: TILESIZE, speed: 8, fc: "white" },
+    { x: 100, y: 0, width: TILESIZE, height: TILESIZE, speed: 8, fc: "purple" },
+];
 
-let TILESIZE: number = 32;
+function np() {
+    currentPlayer = (currentPlayer + 1) % players.length;
+}
 
-function renderLoop(ft: number) {
-    // WARNING: render breaks when camera coords have non int values
-    // TODO: this almost works, however
-    // 1) when value are negative, floor is glitching, ceil does not.
-    // 2) for some reason shapes that touch right edge are cut out.
-    camera.y = Math.floor(ft/4);
-    camera.x = camera.y;
-    let t = performance.now();
-    cv.width = window.innerWidth;
-    cv.height = window.innerHeight;
+let currentPlayer: number = 0;
 
-    for (let y = -1; y-1 < cv.height / TILESIZE; y++) {
-        let sp = getTileInfo(-1, Math.floor(y)+Math.floor(camera.y/TILESIZE));
-        let ll = 0;
-        let ti;
-        let x = -1;
-        while (x-1 < cv.width / TILESIZE) {
-            let ti = getTileInfo(x+Math.floor(camera.x/TILESIZE), Math.floor(y)+Math.floor(camera.y/TILESIZE));
-            if (ti == sp) {
-                ll++;
-                x++;
-                continue;
-            }
-            ctx.fillStyle =
-                ti == TileType.cyan
-                    ? "cyan"
-                    : ti == TileType.key
-                      ? "black"
-                      : ti == TileType.magenta
-                        ? "magenta"
-                        : "yellow";
-            ctx.fillRect(
-                ((x - ll) * TILESIZE) - (camera.x%TILESIZE),
-                (y * TILESIZE) - (camera.y%TILESIZE),
-                TILESIZE * (ll + 1),
-                TILESIZE,
-            );
-            ll = 0;
-            sp = ti;
-            x++;
-        }
-        ctx.fillStyle =
-            ti == TileType.cyan
-                ? "cyan"
-                : ti == TileType.key
-                  ? "black"
-                  : ti == TileType.magenta
-                    ? "magenta"
-                    : "yellow";
-        ctx.fillRect(
-            ((x - ll) * TILESIZE) - (camera.x % TILESIZE),
-            y * TILESIZE - (camera.y % TILESIZE),
-            TILESIZE * (ll + 1),
-            TILESIZE,
-        );
+document.addEventListener("keydown", (event) => {
+    if (event.key == "w") keys.up = true;
+    if (event.key == "s") keys.down = true;
+    if (event.key == "a") keys.left = true;
+    if (event.key == "d") keys.right = true;
+    if (event.key == "g") np();
+});
+
+document.addEventListener("keyup", (event) => {
+    if (event.key == "w") keys.up = false;
+    if (event.key == "s") keys.down = false;
+    if (event.key == "a") keys.left = false;
+    if (event.key == "d") keys.right = false;
+});
+
+function updatePlayerPosition() {
+    const player = players[currentPlayer];
+
+    let dx = 0;
+    let dy = 0;
+
+    if (keys.up) dy -= 1;
+    if (keys.down) dy += 1;
+    if (keys.left) dx -= 1;
+    if (keys.right) dx += 1;
+
+    if (dx != 0 && dy != 0) {
+        const length = Math.sqrt(dx * dx + dy * dy);
+        dx /= length;
+        dy /= length;
     }
 
-    ctx.font = `${TILESIZE}px "JetBrains mono"`;
-    ctx.fillStyle = "#000000";
-    ctx.fillText(`${1000.0 / (performance.now() - t)} fps`, 0, TILESIZE);
+    player.x += dx * player.speed;
+    player.y += dy * player.speed;
+
+    camera.x = player.x - cv.width / 2 + player.width / 2;
+    camera.y = player.y - cv.height / 2 + player.height / 2;
+}
+
+function mod(n: number, m: number): number {
+    return ((n % m) + m) % m;
+}
+
+function renderLoop(_: number = 0) {
+    cv.width = window.innerWidth;
+    cv.height = window.innerHeight;
+    updatePlayerPosition();
+
+    const startTime = performance.now();
+
+    const newx = Math.floor(camera.x / TILESIZE);
+    const newy = Math.floor(camera.y / TILESIZE);
+
+    for (let y = -1; y * TILESIZE < cv.height + TILESIZE; y++) {
+        let x = -1;
+        while (x * TILESIZE < cv.width + TILESIZE) {
+            const tile = getTileInfo(newx + x, newy + y);
+            let length = 1;
+
+            while (
+                x + length < cv.width / TILESIZE + 1 &&
+                getTileInfo(newx + x + length, newy + y) == tile
+            )
+                length++;
+
+            ctx.fillStyle = getTileColor(tile);
+            ctx.fillRect(
+                Math.floor(x * TILESIZE - mod(camera.x, TILESIZE)),
+                Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)),
+                TILESIZE * length,
+                TILESIZE,
+            );
+
+            x += length;
+        }
+    }
+
+    players.forEach((p) => {
+        ctx.fillStyle = p.fc;
+        ctx.fillRect(p.x - camera.x, p.y - camera.y, p.width, p.height);
+    });
+
+    ctx.font = `${TILESIZE}px monospace`;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(
+        `${Math.round(1000.0 / (performance.now() - startTime))} fps`,
+        0,
+        TILESIZE,
+    );
+    ctx.fillText(
+        `${players[currentPlayer].x} ${players[currentPlayer].y}`,
+        0,
+        1 + 2 * TILESIZE,
+    );
+
     requestAnimationFrame(renderLoop);
 }
-renderLoop(0);
+
+function getTileColor(tileType: TileType): string {
+    switch (tileType) {
+        case TileType.cyan:
+            return "cyan";
+        case TileType.key:
+            return "black";
+        case TileType.magenta:
+            return "magenta";
+        default:
+            return "yellow";
+    }
+}
+
+renderLoop();

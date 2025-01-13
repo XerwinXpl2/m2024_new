@@ -1,17 +1,25 @@
 // all numeric units in tiles
 interface Player {
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    speed: number,
-    fc: string,
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    speed: number;
+    tx: OffscreenCanvasRenderingContext2D;
 }
 
 const players: Player[] = [
     { x: 0, y: 0, width: 1, height: 1, speed: 0.25, fc: "white" },
     { x: 2, y: 0, width: 1, height: 1, speed: 0.25, fc: "purple" },
-];
+].map((e) => {
+    const osc = new OffscreenCanvas(32, 32); // TODO: TILESIZE
+    const ctx = osc.getContext("2d", { alpha: false });
+    if (!ctx) throw new Error("Failed to get canvas context");
+    ctx.fillStyle = e.fc;
+    ctx.fillRect(0, 0, 32, 32);
+
+    return { ...e, tx: ctx };
+});
 
 let currentPlayerIndex = 0;
 let player = players[0];
@@ -57,4 +65,4 @@ function updatePlayerPosition(player: Player) {
     player.y += dy * player.speed;
 }
 
-export { player, players, currentPlayerIndex, updatePlayerPosition};
+export { player, players, currentPlayerIndex, updatePlayerPosition };

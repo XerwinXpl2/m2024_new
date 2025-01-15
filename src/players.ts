@@ -1,3 +1,6 @@
+import { TILESIZE } from "./constsettings";
+import { getNewCanvasContext } from "./utils";
+
 // all numeric units in tiles
 interface Player {
     x: number;
@@ -12,13 +15,10 @@ const players: Player[] = [
     { x: 0, y: 0, width: 1, height: 1, speed: 0.25, fc: "white" },
     { x: 2, y: 0, width: 1, height: 1, speed: 0.25, fc: "purple" },
 ].map((e) => {
-    const osc = new OffscreenCanvas(32, 32); // TODO: TILESIZE
-    const ctx = osc.getContext("2d", { alpha: false });
-    if (!ctx) throw new Error("Failed to get canvas context");
-    ctx.fillStyle = e.fc;
-    ctx.fillRect(0, 0, 32, 32);
-
-    return { ...e, tx: ctx };
+    const tx = getNewCanvasContext(TILESIZE, TILESIZE);
+    tx.fillStyle = e.fc;
+    tx.fillRect(0, 0, TILESIZE, TILESIZE);
+    return { ...e, tx };
 });
 
 let currentPlayerIndex = 0;

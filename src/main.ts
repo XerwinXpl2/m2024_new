@@ -1,3 +1,4 @@
+import { TILESIZE, VERYIMPORTANTRENDEROPTSTEPS } from "./constsettings";
 import { player, players, updatePlayerPosition } from "./players";
 import { mod } from "./utils";
 import { getTileInfo } from "./worldgen/generator";
@@ -9,11 +10,9 @@ if (!ctxn) throw new Error("Failed to get canvas context");
 const ctx = ctxn as CanvasRenderingContext2D;
 
 const camera: { x: number; y: number } = { x: 0, y: 0 };
-const TILESIZE = 32;
 const dt = document.getElementById("debug_text") as HTMLElement;
 dt.style.fontSize = `${TILESIZE}px`;
 
-let t0 = 0;
 function renderLoop(_: number = 0) {
     const startTime = performance.now();
 
@@ -29,9 +28,23 @@ function renderLoop(_: number = 0) {
 
     // TODO: OPTIMIZE MORE
     for (let y = -1; y * TILESIZE < cv.height + TILESIZE; y++) {
-        for (let x = -1; x * TILESIZE < cv.width + TILESIZE; x++) {
+        let x = -1;
+        while (x * TILESIZE < cv.width + TILESIZE) {
             const tile = getTileInfo(newx + x, newy + y);
-            ctx.drawImage(tileTextures[tile].canvas, Math.floor(x * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
+            let length = 1;
+            while (
+                x + length < cv.width / TILESIZE + 1 &&
+                getTileInfo(newx + x + length, newy + y) == tile
+            ) length++;
+            let g2 = 0;
+            for (let n = VERYIMPORTANTRENDEROPTSTEPS; n >= 1; n /= 2) {
+                while (length-g2 >= n) {
+                    // as "l1" part is to make ts shut up
+                    ctx.drawImage(tileTextures[tile][`l${n}` as "l1"].canvas, Math.floor((g2+x) * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
+                    g2 += n;
+                };
+            }
+            x += length;
         }
     }
 

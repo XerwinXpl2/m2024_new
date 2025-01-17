@@ -1,8 +1,8 @@
-import { TILESIZE, VERYIMPORTANTRENDEROPTSTEPS } from "./constsettings";
+import { DEBUTIMES, TILESIZE, VERYIMPORTANTRENDEROPTSTEPS } from "./constsettings";
 import { player, players, updatePlayerPosition } from "./players";
-import { mod } from "./utils";
+import { mod, WrapDebugTime } from "./utils";
 import { getTileInfo } from "./worldgen/generator";
-import { tileTextures, TileType } from "./worldgen/types";
+import { tileTextures } from "./worldgen/types";
 
 const cv = document.getElementById("main_canvas") as HTMLCanvasElement;
 let ctxn = cv.getContext("2d", { alpha: false});
@@ -13,7 +13,7 @@ const camera: { x: number; y: number } = { x: 0, y: 0 };
 const dt = document.getElementById("debug_text") as HTMLElement;
 dt.style.fontSize = `${TILESIZE}px`;
 
-function renderLoop(_: number = 0) {
+const renderLoop = WrapDebugTime("renderLoop", (_: number = 0) => {
     const startTime = performance.now();
 
     cv.width = window.innerWidth;
@@ -54,9 +54,10 @@ function renderLoop(_: number = 0) {
     let tmp: number = (performance.now() - startTime);
     dt.innerHTML = `
         <p style="margin: 0; color: ${tmp > 4 ? "red" : tmp > 2 ? "orange" : "green"};">${Math.round(tmp)} ms</p>
-        <p style="margin: 0;">${player.x} ${player.y}</p>`;
+        <p style="margin: 0;">${player.x} ${player.y}</p>
+        <p style="margin: 0;">DEBUGTIMES: ${DEBUTIMES}</p>`;
 
     requestAnimationFrame(renderLoop);
-}
+});
 
 renderLoop();

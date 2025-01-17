@@ -1,5 +1,5 @@
 import { TILESIZE } from "./constsettings";
-import { getNewCanvasContext } from "./utils";
+import { getNewCanvasContext, WrapDebugTime } from "./utils";
 
 // all numeric units in tiles
 interface Player {
@@ -46,7 +46,7 @@ document.addEventListener("keyup", (event) => {
     if (event.key.toLowerCase() == "d") keys.right = false;
 });
 
-function updatePlayerPosition(player: Player) {
+export const updatePlayerPosition = WrapDebugTime("updatePlayerPosition", (player: Player) => {
     let dx = 0;
     let dy = 0;
 
@@ -63,6 +63,6 @@ function updatePlayerPosition(player: Player) {
 
     player.x += dx * player.speed;
     player.y += dy * player.speed;
-}
+})
 
-export { player, players, currentPlayerIndex, updatePlayerPosition };
+export { player, players, currentPlayerIndex };

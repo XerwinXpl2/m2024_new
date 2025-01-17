@@ -26,7 +26,6 @@ function renderLoop(_: number = 0) {
     const newx = Math.floor(camera.x / TILESIZE);
     const newy = Math.floor(camera.y / TILESIZE);
 
-    // TODO: OPTIMIZE MORE
     for (let y = -1; y * TILESIZE < cv.height + TILESIZE; y++) {
         let x = -1;
         while (x * TILESIZE < cv.width + TILESIZE) {
@@ -37,12 +36,12 @@ function renderLoop(_: number = 0) {
                 getTileInfo(newx + x + length, newy + y) == tile
             ) length++;
             let g2 = 0;
-            for (let n = VERYIMPORTANTRENDEROPTSTEPS; n >= 1; n /= 2) {
-                while (length-g2 >= n) {
-                    // as "l1" part is to make ts shut up
-                    ctx.drawImage(tileTextures[tile][`l${n}` as "l1"].canvas, Math.floor((g2+x) * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
-                    g2 += n;
+            for (let n = VERYIMPORTANTRENDEROPTSTEPS; n != -1; n--) {
+                while (length-g2 >= 1 << n) {
+                    ctx.drawImage(tileTextures[tile][n].canvas, Math.floor((g2+x) * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
+                    g2 += 1 << n;
                 };
+                if (g2 == length) break;
             }
             x += length;
         }

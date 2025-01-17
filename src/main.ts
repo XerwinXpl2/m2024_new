@@ -1,8 +1,9 @@
 import { DEBUTIMES, TILESIZE, VERYIMPORTANTRENDEROPTSTEPS } from "./constsettings";
 import { player, players, updatePlayerPosition } from "./players";
+import { tileTextures } from "./textures/tiles";
+import { TileTextureType } from "./textures/types";
 import { mod, WrapDebugTime } from "./utils";
-import { getTileInfo } from "./worldgen/generator";
-import { tileTextures } from "./worldgen/types";
+import { getTile } from "./worldgen/generator";
 
 const cv = document.getElementById("main_canvas") as HTMLCanvasElement;
 let ctxn = cv.getContext("2d", { alpha: false});
@@ -13,7 +14,11 @@ const camera: { x: number; y: number } = { x: 0, y: 0 };
 const dt = document.getElementById("debug_text") as HTMLElement;
 dt.style.fontSize = `${TILESIZE}px`;
 
+let fpst = 0;
+let rli = 0;
+
 const renderLoop = WrapDebugTime("renderLoop", (_: number = 0) => {
+    rli++;
     const startTime = performance.now();
 
     cv.width = window.innerWidth;
@@ -29,16 +34,16 @@ const renderLoop = WrapDebugTime("renderLoop", (_: number = 0) => {
     for (let y = -1; y * TILESIZE < cv.height + TILESIZE; y++) {
         let x = -1;
         while (x * TILESIZE < cv.width + TILESIZE) {
-            const tile = getTileInfo(newx + x, newy + y);
+            const biome = getTile(newx + x, newy + y);
             let length = 1;
             while (
                 x + length < cv.width / TILESIZE + 1 &&
-                getTileInfo(newx + x + length, newy + y) == tile
+                getTile(newx + x + length, newy + y) == biome
             ) length++;
             let g2 = 0;
             for (let n = VERYIMPORTANTRENDEROPTSTEPS; n != -1; n--) {
                 while (length-g2 >= 1 << n) {
-                    ctx.drawImage(tileTextures[tile][n].canvas, Math.floor((g2+x) * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
+                    ctx.drawImage((tileTextures.get(biome) as TileTextureType)[n].canvas, Math.floor((g2+x) * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
                     g2 += 1 << n;
                 };
                 if (g2 == length) break;
@@ -52,8 +57,13 @@ const renderLoop = WrapDebugTime("renderLoop", (_: number = 0) => {
     });
 
     let tmp: number = (performance.now() - startTime);
+    let fps: number = 1000 / tmp;
+    fpst += fps;
     dt.innerHTML = `
         <p style="margin: 0; color: ${tmp > 4 ? "red" : tmp > 2 ? "orange" : "green"};">${Math.round(tmp*10000)/10000} ms</p>
+        <p style="margin: 0; color: ${fps < 60 ? "red" : fps < 240 ? "orange" : "green"};">${Math.round(fps)} fps</p>
+        <p style="margin: 0;">${Math.round(fpst/rli)} fps on average</p>
+        <p style="margin: 0;">frame ${rli}</p>
         <p style="margin: 0;">${player.x} ${player.y}</p>
         <p style="margin: 0;">DEBUGTIMES: ${DEBUTIMES}</p>`;
 

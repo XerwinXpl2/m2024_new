@@ -1,8 +1,7 @@
-import { DEBUTIMES } from "./constsettings";
+import { DEBUGPRINTTIME, DEBUTIMES } from "./constsettings";
 
-export const mod = WrapDebugTime("mod", (n: number, m: number): number => {
-    return ((n % m) + m) % m;
-});
+export const mod = WrapDebugTime("mod", (n: number, m: number): number => ((n % m) + m) % m);
+export const norm = WrapDebugTime("norm", (v: number): number => v / 2 + 0.5);
 
 export const getNewCanvasContext = WrapDebugTime(
     "getNewCanvasContext",
@@ -39,7 +38,7 @@ export function WrapDebugTime<T extends (...args: any[]) => any>(
     f: T,
 ): T {
     if (!DEBUTIMES) return f;
-    return ((...args: any[]) => {
+    return ((...args: Parameters<T>): ReturnType<T> => {
         const l = performance.now();
         const ret = f(...args);
         const g = performance.now() - l;
@@ -56,5 +55,5 @@ export function WrapDebugTime<T extends (...args: any[]) => any>(
     }) as T;
 }
 
-if (DEBUTIMES) setInterval(debugPrintTime, 5000);
+if (DEBUTIMES) setInterval(debugPrintTime, DEBUGPRINTTIME);
 debugPrintTime();

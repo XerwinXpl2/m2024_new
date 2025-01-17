@@ -13,7 +13,7 @@ interface Player {
 
 const players: Player[] = [
     { x: 0, y: 0, width: 1, height: 1, speed: 0.25, fc: "white" },
-    { x: 2, y: 0, width: 1, height: 1, speed: 0.25, fc: "purple" },
+    { x: 1000, y: 0, width: 1, height: 1, speed: 0.25, fc: "purple" },
 ].map((e) => {
     const tx = getNewCanvasContext(TILESIZE, TILESIZE);
     tx.fillStyle = e.fc;

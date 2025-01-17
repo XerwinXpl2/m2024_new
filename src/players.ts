@@ -1,4 +1,4 @@
-import { TILESIZE } from "./constsettings";
+import { GLOBALMAPSCALEMOD, TILESIZE } from "./constsettings";
 import { getNewCanvasContext, WrapDebugTime } from "./utils";
 
 // all numeric units in tiles
@@ -7,13 +7,13 @@ interface Player {
     y: number;
     width: number;
     height: number;
-    speed: number;
+    tilesPerSecond: number;
     tx: OffscreenCanvasRenderingContext2D;
 }
 
 const players: Player[] = [
-    { x: 0, y: 0, width: 1, height: 1, speed: 0.25, fc: "white" },
-    { x: 1000, y: 0, width: 1, height: 1, speed: 0.25, fc: "purple" },
+    { x: 0, y: 0, width: 1, height: 1, tilesPerSecond: GLOBALMAPSCALEMOD, fc: "white" },
+    { x: 2, y: 0, width: 1, height: 1, tilesPerSecond: GLOBALMAPSCALEMOD, fc: "purple" },
 ].map((e) => {
     const tx = getNewCanvasContext(TILESIZE, TILESIZE);
     tx.fillStyle = e.fc;
@@ -46,7 +46,7 @@ document.addEventListener("keyup", (event) => {
     if (event.key.toLowerCase() == "d") keys.right = false;
 });
 
-export const updatePlayerPosition = WrapDebugTime("updatePlayerPosition", (player: Player) => {
+export const updatePlayerPosition = WrapDebugTime("updatePlayerPosition", (player: Player, deltaTime: number) => {
     let dx = 0;
     let dy = 0;
 
@@ -56,13 +56,13 @@ export const updatePlayerPosition = WrapDebugTime("updatePlayerPosition", (playe
     if (keys.right) dx += 1;
 
     if (dx != 0 && dy != 0) {
-        const length = Math.sqrt(dx * dx + dy * dy);
+        const length = Math.hypot(dx, dy);
         dx /= length;
         dy /= length;
     }
 
-    player.x += dx * player.speed;
-    player.y += dy * player.speed;
+    player.x += dx * player.tilesPerSecond * deltaTime;
+    player.y += dy * player.tilesPerSecond * deltaTime;
 })
 
-export { player, players, currentPlayerIndex };
+export { currentPlayerIndex, player, players };

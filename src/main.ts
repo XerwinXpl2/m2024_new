@@ -53,7 +53,7 @@ const renderLoop = WrapDebugTime("renderLoop", (_: number = 0) => {
 
     let tmp: number = (performance.now() - startTime);
     dt.innerHTML = `
-        <p style="margin: 0; color: ${tmp > 4 ? "red" : tmp > 2 ? "orange" : "green"};">${Math.round(tmp)} ms</p>
+        <p style="margin: 0; color: ${tmp > 4 ? "red" : tmp > 2 ? "orange" : "green"};">${Math.round(tmp*10000)/10000} ms</p>
         <p style="margin: 0;">${player.x} ${player.y}</p>
         <p style="margin: 0;">DEBUGTIMES: ${DEBUTIMES}</p>`;
 

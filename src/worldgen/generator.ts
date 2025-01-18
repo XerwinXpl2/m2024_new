@@ -1,17 +1,18 @@
 import { createNoise2D } from "simplex-noise";
-import { WrapDebugTime } from "@/utils";
+import { rmpnorm, WrapDebugTime } from "@/utils";
 import { Biomes, getBiome } from "./biomes";
 import { GLOBALMAPSCALEMOD, MAPCACHEPURGETIME, MAPCACHEPURGETRESHOLD } from "@/constsettings";
 
-const noiseMapWaters = createNoise2D();
-const WATERS_MAP_SCALE = 512 * GLOBALMAPSCALEMOD;
+const noiseMapHeight = createNoise2D();
+const noiseMapHeight2 = createNoise2D();
+const HEIGHT_MAP_SCALE = 512 * GLOBALMAPSCALEMOD;
 const noiseMapTemperature = createNoise2D();
-const TEMPERATURE_MAP_SCALE = 512 * GLOBALMAPSCALEMOD;
+const TEMPERATURE_MAP_SCALE = 1024 * GLOBALMAPSCALEMOD;
 const noiseMapHumidity = createNoise2D();
-const HUMIDITY_MAP_SCALE = 32 * GLOBALMAPSCALEMOD;
-const noiseMapFertility = createNoise2D();
-const FERTILITY_MAP_SCALE = 16 * GLOBALMAPSCALEMOD;
-// no light levels since the world is flat. perhaps wind but it is caused by terrain height which is not a thing yet
+const HUMIDITY_MAP_SCALE = 512 * GLOBALMAPSCALEMOD;
+
+const msx = 1 + 0.75 * (Math.random() - 0.5);
+const msy = 1 + 0.75 * (Math.random() - 0.5);
 
 const cache: Map<string, keyof typeof Biomes> = new Map();
 setInterval(WrapDebugTime("purgeBiomeCache", () => {
@@ -28,11 +29,14 @@ export const getTile = WrapDebugTime("getTile", (x: number, y: number): keyof ty
 
     let tmp = cache.get(key)
     if (!tmp) {
-        let temperature = noiseMapTemperature(x / TEMPERATURE_MAP_SCALE, y / TEMPERATURE_MAP_SCALE);
-        let humidity = noiseMapHumidity(x / HUMIDITY_MAP_SCALE, y / HUMIDITY_MAP_SCALE);
-        let fertility = noiseMapFertility(x / FERTILITY_MAP_SCALE, y / FERTILITY_MAP_SCALE);
-        let waters = 1-Math.pow(1-noiseMapWaters(x / WATERS_MAP_SCALE, y / WATERS_MAP_SCALE), 1.6);
-        tmp = getBiome(temperature, humidity, fertility, waters);
+        const temperature = noiseMapTemperature(x / TEMPERATURE_MAP_SCALE, y / TEMPERATURE_MAP_SCALE);
+        const humidity = noiseMapHumidity(x / HUMIDITY_MAP_SCALE, y / HUMIDITY_MAP_SCALE);
+        const height = rmpnorm(noiseMapHeight(x / HEIGHT_MAP_SCALE, y / HEIGHT_MAP_SCALE))
+        const height2 = rmpnorm(noiseMapHeight2(x / HEIGHT_MAP_SCALE * 4, y / HEIGHT_MAP_SCALE * 4))
+        const ISLANDSIZEINV = 1 / (2048 * GLOBALMAPSCALEMOD);
+        const cdist = 1 - Math.hypot(ISLANDSIZEINV * x * msx, ISLANDSIZEINV * y * msy);
+        tmp = getBiome(temperature, humidity, cdist * Math.pow(0.2 * height2 + height, 0.3));
+        // tmp = getBiome(temperature, humidity, fertility, height);
         cache.set(key, tmp);
     }
     return tmp;

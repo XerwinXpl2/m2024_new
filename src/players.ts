@@ -12,8 +12,8 @@ interface Player {
 }
 
 const players: Player[] = [
-    { x: 0, y: 0, width: 1, height: 1, tilesPerSecond: GLOBALMAPSCALEMOD, fc: "white" },
-    { x: 2, y: 0, width: 1, height: 1, tilesPerSecond: GLOBALMAPSCALEMOD, fc: "purple" },
+    { x: 0, y: 0, width: 1, height: 1, tilesPerSecond: 32, fc: "white" },
+    { x: 0, y: 1, width: 1, height: 1, tilesPerSecond: 32, fc: "purple" },
 ].map((e) => {
     const tx = getNewCanvasContext(TILESIZE, TILESIZE);
     tx.fillStyle = e.fc;

@@ -3,6 +3,11 @@ import { DEBUGPRINTTIME, DEBUTIMES } from "./constsettings";
 export const mod = WrapDebugTime("mod", (n: number, m: number): number => ((n % m) + m) % m);
 export const norm = WrapDebugTime("norm", (v: number): number => v / 2 + 0.5);
 
+// [-1, 1] to [0, 1]
+export const rmpnorm = WrapDebugTime("rmpnorm", (v: number) => (1 + v) * 0.5);
+// [0, 1] to [-1, 1]
+export const rmpb = WrapDebugTime("rmpb", (v: number) => (v * 2) - 1);
+
 export const getNewCanvasContext = WrapDebugTime(
     "getNewCanvasContext",
     (w: number, h: number, alpha: boolean = false) => {

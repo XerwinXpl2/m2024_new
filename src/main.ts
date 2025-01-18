@@ -12,7 +12,6 @@ const ctx = ctxn as CanvasRenderingContext2D;
 
 const camera: { x: number; y: number } = { x: 0, y: 0 };
 const dt = document.getElementById("debug_text") as HTMLElement;
-dt.style.fontSize = `${TILESIZE}px`;
 
 let fpst = 0;
 let rli = 0;

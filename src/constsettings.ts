@@ -1,10 +1,34 @@
-export const TILESIZE: number = 32;
+/**
+ * size of a single time, in pixels.
+ */
+export const TILE_SIZE: number = 32;
 
-export const VERYIMPORTANTRENDEROPTSTEPS: number = 4; // the more entropy the map has the lower should it be, minumum is 0. 4 is 16,8,4,2,1
-export const MAPCACHEPURGETIME: number = 2500;
-export const MAPCACHEPURGETRESHOLD: number = 20000;
+/**
+ * 2 to this power is max width of coalesced tile, should be low if map has high entropy.
+ */
+export const TILE_COALESCENCE_POWER: number = 4;
 
-export const DEBUTIMES: boolean = false;
-export const DEBUGPRINTTIME: number = 5000;
+/**
+ * time in milliseconds between purges of map cache
+ */
+export const MAP_CACHE_PURGE_PERIOD: number = 2500;
 
-export const GLOBALMAPSCALEMOD: number = 1/8; // 1/8 i am tired of changing that
+/**
+ * how many entries must map cache have to be purged
+ */
+export const MAP_CACHE_PURGE_THRESHOLD: number = 20000;
+
+/**
+ * if enabled, execution time of wrapped functions will be measured
+ */
+export const DEBUG_TIMER: boolean = false;
+
+/**
+ * time in milliseconds between debug timer summaries
+ */
+export const DEBUG_TIMER_PRINT_PERIOD: number = 5000;
+
+/**
+ * scale multiplier for map generator
+ */
+export const GLOBAL_MAP_SCALE_MULTIPLIER: number = 1/8;

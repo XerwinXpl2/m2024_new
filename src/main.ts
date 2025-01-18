@@ -1,4 +1,4 @@
-import { DEBUTIMES, TILESIZE, VERYIMPORTANTRENDEROPTSTEPS } from "./constsettings";
+import { DEBUG_TIMER, TILE_COALESCENCE_POWER, TILE_SIZE } from "./constsettings";
 import { player, players, updatePlayerPosition } from "./players";
 import { tileTextures } from "./textures/tiles";
 import { TileTextureType } from "./textures/types";
@@ -6,7 +6,7 @@ import { mod, WrapDebugTime } from "./utils";
 import { getTile } from "./worldgen/generator";
 
 const cv = document.getElementById("main_canvas") as HTMLCanvasElement;
-let ctxn = cv.getContext("2d", { alpha: false });
+let ctxn = cv.getContext("2d", { alpha: false, desynchonized: false, willReadFrequently: false });
 if (!ctxn) throw new Error("Failed to get canvas context");
 const ctx = ctxn as CanvasRenderingContext2D;
 
@@ -27,25 +27,25 @@ const renderLoop = WrapDebugTime("renderLoop", (currentTime: number = 0) => {
 
     updatePlayerPosition(player, (currentTime - lastFrameTime) / 1000);
     lastFrameTime = currentTime;
-    camera.x = (player.x * TILESIZE) + (player.width * TILESIZE - cv.width) * 0.5;
-    camera.y = (player.y * TILESIZE) + (player.height * TILESIZE - cv.height) * 0.5;
+    camera.x = (player.x * TILE_SIZE) + (player.width * TILE_SIZE - cv.width) * 0.5;
+    camera.y = (player.y * TILE_SIZE) + (player.height * TILE_SIZE - cv.height) * 0.5;
 
-    const newx = Math.floor(camera.x / TILESIZE);
-    const newy = Math.floor(camera.y / TILESIZE);
+    const newx = Math.floor(camera.x / TILE_SIZE);
+    const newy = Math.floor(camera.y / TILE_SIZE);
 
-    for (let y = -1; y * TILESIZE < cv.height + TILESIZE; y++) {
+    for (let y = -1; y * TILE_SIZE < cv.height + TILE_SIZE; y++) {
         let x = -1;
-        while (x * TILESIZE < cv.width + TILESIZE) {
+        while (x * TILE_SIZE < cv.width + TILE_SIZE) {
             const biome = getTile(newx + x, newy + y);
             let length = 1;
             while (
-                x + length < cv.width / TILESIZE + 1 &&
+                x + length < cv.width / TILE_SIZE + 1 &&
                 getTile(newx + x + length, newy + y) == biome
             ) length++;
             let g2 = 0;
-            for (let n = VERYIMPORTANTRENDEROPTSTEPS; n != -1; n--) {
+            for (let n = TILE_COALESCENCE_POWER; n != -1; n--) {
                 while (length - g2 >= 1 << n) {
-                    ctx.drawImage((tileTextures.get(biome) as TileTextureType)[n].canvas, Math.floor((g2 + x) * TILESIZE - mod(camera.x, TILESIZE)), Math.floor(y * TILESIZE - mod(camera.y, TILESIZE)));
+                    ctx.drawImage((tileTextures.get(biome) as TileTextureType)[n].canvas, Math.floor((g2 + x) * TILE_SIZE - mod(camera.x, TILE_SIZE)), Math.floor(y * TILE_SIZE - mod(camera.y, TILE_SIZE)));
                     g2 += 1 << n;
                 };
                 if (g2 == length) break;
@@ -55,7 +55,7 @@ const renderLoop = WrapDebugTime("renderLoop", (currentTime: number = 0) => {
     }
 
     players.forEach((p) => {
-        ctx.drawImage(p.tx.canvas, p.x * TILESIZE - camera.x, p.y * TILESIZE - camera.y)
+        ctx.drawImage(p.tx.canvas, p.x * TILE_SIZE - camera.x, p.y * TILE_SIZE - camera.y)
     });
 
     let tmp: number = (performance.now() - startTime);
@@ -67,7 +67,7 @@ const renderLoop = WrapDebugTime("renderLoop", (currentTime: number = 0) => {
         <p style="margin: 0;">${Math.round(fpst / rli)} fps on average</p>
         <p style="margin: 0;">frame ${rli}</p>
         <p style="margin: 0;">${player.x} ${player.y}</p>
-        <p style="margin: 0;">DEBUGTIMES: ${DEBUTIMES}</p>`;
+        <p style="margin: 0;">DEBUGTIMES: ${DEBUG_TIMER}</p>`;
 
     requestAnimationFrame(renderLoop);
 });

@@ -94,6 +94,6 @@ export const updatePlayerPosition = WrapDebugTime("updatePlayerPosition", (playe
 
     player.x += dx * player.tilesPerSecond * deltaTime;
     player.y += dy * player.tilesPerSecond * deltaTime;
-})
+});
 
 export { currentPlayerIndex, player, players };

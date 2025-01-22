@@ -11,6 +11,8 @@ const TEMPERATURE_MAP_SCALE = 1024 * GLOBAL_MAP_SCALE_MULTIPLIER;
 const noiseMapHumidity = createNoise2D();
 const HUMIDITY_MAP_SCALE = 512 * GLOBAL_MAP_SCALE_MULTIPLIER;
 
+const ISLANDSIZEINV = 1 / (2048 * GLOBAL_MAP_SCALE_MULTIPLIER);
+
 const msx = 1 + 0.75 * (Math.random() - 0.5);
 const msy = 1 + 0.75 * (Math.random() - 0.5);
 
@@ -36,12 +38,20 @@ export const getTile = WrapDebugTime("getTile", (x: number, y: number): keyof ty
     if (!tmp) {
         const temperature = noiseMapTemperature(x / TEMPERATURE_MAP_SCALE, y / TEMPERATURE_MAP_SCALE);
         const humidity = noiseMapHumidity(x / HUMIDITY_MAP_SCALE, y / HUMIDITY_MAP_SCALE);
-        const height = rmpnorm(noiseMapHeight(x / HEIGHT_MAP_SCALE, y / HEIGHT_MAP_SCALE))
-        const height2 = rmpnorm(noiseMapHeight2(x / HEIGHT_MAP_SCALE * 4, y / HEIGHT_MAP_SCALE * 4))
-        const ISLANDSIZEINV = 1 / (2048 * GLOBAL_MAP_SCALE_MULTIPLIER);
-        const cdist = 1 - Math.hypot(ISLANDSIZEINV * x * msx, ISLANDSIZEINV * y * msy);
-        tmp = getBiome(temperature, humidity, cdist * Math.pow(0.2 * height2 + height, 0.3));
+        tmp = getBiome(temperature, humidity, getHeight(x, y));
         cache.set(key, tmp);
     }
     return tmp;
+});
+
+/**
+ * returns map height at given coordinate, height is a value between 0 and 1
+ * @param x x coordinate
+ * @param y y coordinate
+ */
+export const getHeight = WrapDebugTime("getHeight", (x: number, y: number): number => {
+    const height = rmpnorm(noiseMapHeight(x / HEIGHT_MAP_SCALE, y / HEIGHT_MAP_SCALE))
+    const height2 = rmpnorm(noiseMapHeight2(x / HEIGHT_MAP_SCALE * 4, y / HEIGHT_MAP_SCALE * 4))
+    const cdist = 1 - Math.hypot(ISLANDSIZEINV * x * msx, ISLANDSIZEINV * y * msy);
+    return cdist * Math.pow(0.2 * height2 + height, 0.3);
 });

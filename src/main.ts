@@ -1,8 +1,9 @@
 import { DEBUG_TIMER, TILE_COALESCENCE_POWER, TILE_SIZE } from "./constsettings";
 import { player, players, updatePlayerPosition } from "./players";
-import { tileTextures } from "./textures/tiles";
+import { loadTextures, tileTextures } from "./textures/tiles";
 import { TileTextureType } from "./textures/types";
 import { mod, WrapDebugTime } from "./utils";
+import { getBiome } from "./worldgen/biomes";
 import { getTile } from "./worldgen/generator";
 
 const cv = document.getElementById("main_canvas") as HTMLCanvasElement;
@@ -67,9 +68,11 @@ const renderLoop = WrapDebugTime("renderLoop", (currentTime: number = 0) => {
         <p style="margin: 0;">${Math.round(fpst / rli)} fps on average</p>
         <p style="margin: 0;">frame ${rli}</p>
         <p style="margin: 0;">${player.x} ${player.y}</p>
-        <p style="margin: 0;">DEBUGTIMES: ${DEBUG_TIMER}</p>`;
+        <p style="margin: 0;">DEBUGTIMES: ${DEBUG_TIMER}</p>
+        <p style="margin: 0;">${getTile(player.x+0.5, player.y+0.5)}</p>`;
 
     requestAnimationFrame(renderLoop);
 });
 
+await loadTextures();
 renderLoop();
